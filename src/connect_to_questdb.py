@@ -10,13 +10,14 @@ with pg.connect(conn_str, autocommit=True) as connection:
         cur.execute("""CREATE TABLE sampled_trades_binance (
                     symbol symbol,
                     ts timestamp,
-                    avg_price double) timestamp(ts);
+                    avg_price double) timestamp(ts) PARTITION BY DAY TTL 7 DAYS;
                     
                     INSERT INTO "sampled_trades_binance"
                     SELECT symbol, timestamp, avg(price)
                     FROM "trades-BINANCE"
-                    SAMPLE BY 1m;         
-                    """)
+                    SAMPLE BY 1m
+                    FILL(NULL, NULL, NULL);     
+                                        """)
         records = cur.fetchall()
         for row in records:
             print(row)
