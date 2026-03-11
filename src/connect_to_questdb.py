@@ -15,8 +15,7 @@ with pg.connect(conn_str, autocommit=True) as connection:
                     INSERT INTO "sampled_trades_binance"
                     SELECT symbol, timestamp, avg(price)
                     FROM "trades-BINANCE"
-                    SAMPLE BY 1m
-                    FILL(NULL, NULL, NULL);     
+                    SAMPLE BY 1m;     
                                         """)
         records = cur.fetchall()
         for row in records:
