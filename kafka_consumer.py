@@ -57,49 +57,49 @@ def set_mq_connection():
 
 
 def write_to_mq(channel, message):
-    channel.basic_publish(exchange='', body=message)
-    #print(" [x] Sent 'Hello World!'")
+    channel.basic_publish(exchange='', routing_key="ms", body=json.dumps(message))
+    # print(" [x] Sent 'Hello World!'")
 
-    
-    conf = {
-        'bootstrap.servers': 'localhost:9092',
-        'group.id': 'my-consumer-group',
-        'auto.offset.reset': 'earliest',
-        'enable.auto.commit': False,
-    }
-    
-    consumer = Consumer(conf)
-    
-    topic = 'my-topic'
-    consumer.subscribe([topic])
-    
-    connection, channel = set_mq_connection()
-    
-    try:
-        while True:
-            msg = consumer.poll(1.0)
-            if msg is None:
-                continue
-            if msg.error():
-                print(msg.error())
-            else:
-                try:
-                    new_msg = json.loads(msg.value().decode('utf-8'))
-                    transform_ms = transform(new_msg)
-                    print(transform_ms)
-                    write_to_mq(channel, transform_ms)
-                    consumer.commit(msg)
-                except JSONDecodeError:
-                    consumer.commit(msg)
-    
-    except KeyboardInterrupt:
-        sys.stderr.write('%% Aborted by user\n')
-    finally:
-        consumer.close()
-        connection.close()
-    
-    """
-    import json
+
+conf = {
+    'bootstrap.servers': 'localhost:9092',
+    'group.id': 'my-consumer-group',
+    'auto.offset.reset': 'earliest',
+    'enable.auto.commit': False,
+}
+
+consumer = Consumer(conf)
+
+topic = 'my-topic'
+consumer.subscribe([topic])
+
+connection, channel = set_mq_connection()
+
+try:
+    while True:
+        msg = consumer.poll(1.0)
+        if msg is None:
+            continue
+        if msg.error():
+            print(msg.error())
+        else:
+            try:
+                new_msg = json.loads(msg.value().decode('utf-8'))
+                transform_ms = transform(new_msg)
+                # print(transform_ms)
+                write_to_mq(channel, transform_ms)
+                consumer.commit(msg)
+            except JSONDecodeError:
+                consumer.commit(msg)
+
+except KeyboardInterrupt:
+    sys.stderr.write('%% Aborted by user\n')
+finally:
+    consumer.close()
+    connection.close()
+
+"""
+import json
 
 
 import sys
