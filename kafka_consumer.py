@@ -2,9 +2,9 @@ import json
 import sys
 from json import JSONDecodeError
 
-# import pika
-
 from confluent_kafka import Consumer, KafkaException
+
+import pika
 
 
 def check_message_schema(message: dict) -> bool:
@@ -48,61 +48,60 @@ def transform(message):
     return None
 
 
-"""def connect_to_mq():
-    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+def set_mq_connection():
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
     channel = connection.channel()
+
     channel.queue_declare(queue='ms')
     return connection, channel
 
 
-def write_to_mq(msg):
-    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
-    channel = connection.channel()
-    channel.queue_declare(queue='ms')
-    channel.basic_publish(exchange='',
-                          routing_key='ms',
-                          body=msg)
-    connection.close()"""
+def write_to_mq(channel, message):
+    channel.basic_publish(exchange='', body=message)
+    #print(" [x] Sent 'Hello World!'")
 
-conf = {
-    'bootstrap.servers': 'localhost:9092',
-    'group.id': 'my-consumer-group',
-    'auto.offset.reset': 'earliest',
-    'enable.auto.commit': False,
-}
+    
+    conf = {
+        'bootstrap.servers': 'localhost:9092',
+        'group.id': 'my-consumer-group',
+        'auto.offset.reset': 'earliest',
+        'enable.auto.commit': False,
+    }
+    
+    consumer = Consumer(conf)
+    
+    topic = 'my-topic'
+    consumer.subscribe([topic])
+    
+    connection, channel = set_mq_connection()
+    
+    try:
+        while True:
+            msg = consumer.poll(1.0)
+            if msg is None:
+                continue
+            if msg.error():
+                print(msg.error())
+            else:
+                try:
+                    new_msg = json.loads(msg.value().decode('utf-8'))
+                    transform_ms = transform(new_msg)
+                    print(transform_ms)
+                    write_to_mq(channel, transform_ms)
+                    consumer.commit(msg)
+                except JSONDecodeError:
+                    consumer.commit(msg)
+    
+    except KeyboardInterrupt:
+        sys.stderr.write('%% Aborted by user\n')
+    finally:
+        consumer.close()
+        connection.close()
+    
+    """
+    import json
 
-consumer = Consumer(conf)
 
-topic = 'my-topic'
-consumer.subscribe([topic])
-
-# connection, channel = connect_to_mq()
-
-try:
-    while True:
-        msg = consumer.poll(1.0)
-        if msg is None:
-            continue
-        if msg.error():
-            print(msg.error())
-        else:
-            try:
-                new_msg = json.loads(msg.value().decode('utf-8'))
-                transform_temp = transform(new_msg)
-                print(transform_temp)
-                # write_to_mq(channel, transform_temp)
-                # write_to_mq(transform)
-                consumer.commit(msg)
-            except JSONDecodeError:
-                consumer.commit(msg)
-
-except KeyboardInterrupt:
-    sys.stderr.write('%% Aborted by user\n')
-finally:
-    consumer.close()
-    # connection.close()
-
-"""import json
 import sys
 from json import JSONDecodeError
 
@@ -137,4 +136,5 @@ try:
 except KeyboardInterrupt as e:
     sys.stderr.write('%% Aborted by user\n')
 finally:
-    consumer.close()"""
+    consumer.close()
+    """
