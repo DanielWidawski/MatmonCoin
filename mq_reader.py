@@ -4,7 +4,10 @@ from questdb.ingress import Sender
 import os
 import sys
 
+import datetime
+
 import pika
+from pika.exceptions import StreamLostError
 
 
 def main():
@@ -19,16 +22,20 @@ def main():
     channel.basic_consume(queue='ms', on_message_callback=write_to_questdb, auto_ack=True)
 
     print(' [*] Waiting for messages. To exit press CTRL+C')
-    channel.start_consuming()
+    try:
+        channel.start_consuming()
+    except StreamLostError:
+        exit(0)
 
-def write_to_questdb(message):
-    msg = json.loads(message.body.decode('utf-8'))
+
+def write_to_questdb(mech, method, properties, body):
+    msg = json.loads(body.decode('utf-8'))
     conf = 'http::addr=localhost:9000;'
     with Sender.from_conf(conf) as sender:
         sender.row("trades",
                    symbols={'symbol': msg.get('symbol')},
                    columns={'market': msg.get('market'), 'price': msg.get('price'), 'amount': msg.get('amount'), 'side': msg.get('side')},
-                   at= msg.get('timestamp'))
+                   at= datetime.datetime.fromtimestamp(msg.get('timestamp')))
 
 if __name__ == '__main__':
     try:
