@@ -1,4 +1,6 @@
 import json
+
+from questdb.ingress import Sender
 import os
 import sys
 
@@ -11,14 +13,22 @@ def main():
 
     channel.queue_declare(queue='ms')
 
-    def callback(ch, method, properties, body):
-        print(f" [x] Received {json.loads(body.decode('utf-8'))}")
+    """def callback(ch, method, properties, body):
+        print(f" [x] Received {json.loads(body.decode('utf-8'))}")"""
 
-    channel.basic_consume(queue='ms', on_message_callback=callback, auto_ack=True)
+    channel.basic_consume(queue='ms', on_message_callback=write_to_questdb, auto_ack=True)
 
     print(' [*] Waiting for messages. To exit press CTRL+C')
     channel.start_consuming()
 
+def write_to_questdb(message):
+    msg = json.loads(message.body.decode('utf-8'))
+    conf = 'http::addr=localhost:9000;'
+    with Sender.from_conf(conf) as sender:
+        sender.row("trades",
+                   symbols={'symbol': msg.get('symbol')},
+                   columns={'market': msg.get('market'), 'price': msg.get('price'), 'amount': msg.get('amount'), 'side': msg.get('side')},
+                   at= msg.get('timestamp'))
 
 if __name__ == '__main__':
     try:
