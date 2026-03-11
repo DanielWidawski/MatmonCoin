@@ -7,8 +7,12 @@ with pg.connect(conn_str, autocommit=True) as connection:
     # Open a cursor to perform database operations
     with connection.cursor() as cur:
         #Query the database and obtain data as Python objects.
-        cur.execute("""SELECT * FROM "sampled_trades_binance"
+        cur.execute("""CREATE TABLE sampled_by_minutes_trades_binance (
+                    symbol symbol,
+                    ts timestamp,
+                    avg_price double
+                    ) timestamp(ts) PARTITION BY DAY TTL 7 DAYS;
+
+                     ALTER TABLE sampled_by_minutes_trades_binance DEDUP DISABLE;
                                         """)
-        records = cur.fetchall()
-        for row in records:
-            print(row)
+       
