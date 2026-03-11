@@ -43,7 +43,7 @@ def transform(message):
             new_schema['side'] = "sell" if data.get('m') else "buy"
             new_schema['price'] = data.get("p")
             new_schema['amount'] = data.get("q")
-            new_schema['timestamp'] = data.get("T")
+            new_schema['timestamp'] = data.get("T") / 1000.0
         return new_schema
     return None
 
