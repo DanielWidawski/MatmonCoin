@@ -26,7 +26,7 @@ def delivery_report(err, msg):
 
 async def kafka_writer(t, receipt_timestamp):
     #print(t.raw)
-    producer.produce(topic, (json.dumps({"market": "Binance", "message": {"data": t.raw}})).encode('utf-8'), callback=delivery_report)
+    producer.produce(topic, (json.dumps({"market": "BINANCE", "message": {"data": t.raw}})).encode('utf-8'), callback=delivery_report)
     producer.flush()
 
 
