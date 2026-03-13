@@ -34,7 +34,7 @@ def transform(message):
     # message = {'market': 'Binance', 'message': '{"stream":"solusdt@trade","data":{"e":"trade","E":1773087732411,"T":1773087732411,"s":"SOLUSDT","t":3216441787,"p":"85.7800","q":"10.71","X":"MARKET","m":false}}'}
     # message2 = {'market': 'Binance', 'message': {'stream': 'btcusdt@aggTrade', 'data': {'e': 'aggTrade', 'E': 1773136021199, 'a': 3190727436, 's': 'BTCUSDT', 'p': '70974.50', 'q': '0.002', 'nq': '0.002', 'f': 7413816280, 'l': 7413816280, 'T': 1773136021194, 'm': False}}}
     if check_message_schema(message):
-        if message.get("market") == 'Binance':
+        if message.get("market") == 'BINANCE':
             new_schema['market'] = message.get("market")
             message = get_original_message(message)
             data = get_original_data(message)
