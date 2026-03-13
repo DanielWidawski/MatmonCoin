@@ -28,8 +28,8 @@ sampled_by_day: str = '1d'
 
 with pg.connect(conn_str, autocommit=True) as connection:
      with connection.cursor() as cur:
-      # create_binance_trades_materilized_view(materilized_view_name=sampled_by_minute_materilized_view_name, sample_by=sampled_by_minute)
-       cur.execute(f"""SELECT * FROM {sampled_by_minute_materilized_view_name}  
+       #create_binance_trades_materilized_view(materilized_view_name=sampled_by_hour_materilized_view_name, sample_by=sampled_by_hour)
+       cur.execute(f"""SELECT * FROM {sampled_by_hour_materilized_view_name}  
                     """)
        records = cur.fetchall()
        for row in records:
