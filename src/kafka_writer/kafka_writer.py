@@ -36,7 +36,6 @@ def main():
     binance_symbols = ['SOL-USDT', 'BTC-USDT', 'ETH-USDT', 'ARB-USDT', 'OP-USDT', 'PEPE-USDT', 'WIF-USDT', 'BNB-USDT']
     f.add_feed(Binance(channels=[TRADES], symbols=binance_symbols, callbacks={TRADES: kafka_writer}))
     # f.add_feed(Bybit(symbols=['BTC-USDT-PERP'], channels=[TRADES], callbacks={TRADES: kafka_writer}))
-
     f.run()
 
 
