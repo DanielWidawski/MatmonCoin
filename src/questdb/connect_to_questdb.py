@@ -2,37 +2,36 @@
 import psycopg as pg
 import time
 
-    
-def create_binance_trades_materilized_view(materilized_view_name: str, sample_by: str) -> None:
-   cur.execute(f""" CREATE MATERIALIZED VIEW {materilized_view_name} REFRESH EVERY 1m AS (
-                    SELECT symbol, timestamp, avg(price) AS avg_price, min(price) AS min_price, max(price) AS max_price
-                    FROM "temp"
-                    SAMPLE BY {sample_by}
-               ) PARTITION BY DAY TTL 7 DAYS
+conn_str = 'user=admin password=quest host=0.0.0.0 port=8812 dbname=trades-BINANCE'    
+
+def create_sampled_trades_by_minute_binance_table() -> None:
+    cur.execute("""CREATE TABLE sampled_trades_by_minute_binance  (
+                symbol symbol,
+                ts timestamp,
+                avg_price double
+                ) timestamp(ts) PARTITION BY DAY WAL
+                DEDUP UPSERT KEYS(symbol, ts);
+
+                ALTER TABLE sampled_trades_by_minute_binance  SET TTL 7 DAYS;
                     """)
-   
 
-
-conn_str = 'user=admin password=quest host=0.0.0.0 port=8812 dbname=temp'    
-
-sampled_by_minute_materilized_view_name: str = 'binance_trades_minutely'
-sampled_by_minute: str = '1m'
-
-sampled_by_hour_materilized_view_name: str = 'binance_trades_hourly'
-sampled_by_hour: str = '1h'
-
-sampled_by_day_materilized_view_name: str = 'binance_trades_daily'
-sampled_by_day: str = '1d'
+def insert_data_into_sampled_trades_by_minute_binance_table() -> None:
+    cur.execute(""" INSERT INTO sampled_trades_by_minute_binance  
+                SELECT symbol, timestamp, avg(price)
+                FROM "trades-BINANCE"
+                SAMPLE BY 1m;         
+                    """)
+    
 
 
 
 with pg.connect(conn_str, autocommit=True) as connection:
-     with connection.cursor() as cur:
-       #create_binance_trades_materilized_view(materilized_view_name=sampled_by_minute_materilized_view_name, sample_by=sampled_by_minute)
-       cur.execute(f"""SELECT * FROM {sampled_by_minute_materilized_view_name}  
+    # Open a cursor to perform database operations
+    with connection.cursor() as cur:
+        #Query the database and obtain data as Python objects.
+        insert_data_into_sampled_trades_by_minute_binance_table()
+        cur.execute("""SELECT * FROM sampled_trades_by_minute_binance  
                     """)
-       records = cur.fetchall()
-       for row in records:
-         print(row)    
-                 
-       
+        records = cur.fetchall()
+        for row in records:
+            print(row)    
