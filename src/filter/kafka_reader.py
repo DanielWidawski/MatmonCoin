@@ -1,20 +1,10 @@
 from confluent_kafka import Consumer
+from config.kafka_config import consumer_config, topic
 import json
-import sys
-
-from src.filter.market_transform_redirect import market_transformer
-
-conf = {
-    "bootstrap.servers": "localhost:9092",
-    "group.id": "my-consumer-group",
-    "auto.offset.reset": "earliest",
-    "enable.auto.commit": False,
-}
 
 
-consumer = Consumer(conf)
+consumer = Consumer(consumer_config)
 
-topic = "my-topic"
 consumer.subscribe([topic])
 
 

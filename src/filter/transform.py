@@ -18,7 +18,7 @@ class Transformer(ABC):
     
     @abstractmethod
     def transform(self, message):
-        raise NotImplementedError
+        ...
     
     
 
@@ -37,4 +37,9 @@ class BinanceTransformer(Transformer):
         new_schema['amount'] = data.get("q")
         new_schema['timestamp'] = data.get("T") / 1000.0
         return new_schema
-        
+    
+class BybitTransformer(Transformer):
+    def transform(self, message):
+        raise NotImplementedError
+
+    

@@ -5,16 +5,9 @@ from cryptofeed import FeedHandler
 from cryptofeed.backends.quest import CandlesQuest, TradeQuest
 from cryptofeed.defines import CANDLES, TRADES
 from cryptofeed.exchanges import Binance, Bybit, Coinbase, Gemini
+from config.kafka_config import producer_config, topic
 
-config = {
-    # User-specific properties that you must set
-    'bootstrap.servers': 'localhost:9092',
-
-    # Fixed properties
-    'acks': 'all'
-}
-topic = "my-topic"
-producer = Producer(config)
+producer = Producer(producer_config)
 
 
 def delivery_report(err, msg):
