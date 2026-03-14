@@ -25,14 +25,15 @@ def main():
     try:
         channel.start_consuming()
     except StreamLostError:
-        exit(0)
+        print(1)
+        main()
 
 
 def write_to_questdb(mech, method, properties, body):
     msg = json.loads(body.decode('utf-8'))
     conf = 'http::addr=localhost:9000;'
     with Sender.from_conf(conf) as sender:
-        sender.row("trades",
+        sender.row("temp",
                    symbols={'symbol': msg.get('symbol'), 'market': msg.get('market').upper(), 'side': msg.get('side')},
                    columns={'price': float(msg.get('price')), 'amount': float(msg.get('amount'))},
                    at= datetime.datetime.fromtimestamp(msg.get('timestamp')))
