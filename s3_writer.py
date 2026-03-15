@@ -118,6 +118,7 @@ def write_to_s3(msg):
         print("didnt work")
     finally:
         os.remove(path)
+
 def first_time():
     current_file_dir = Path(__file__).resolve().parent
     path = str(current_file_dir)+"try.txt"
@@ -125,21 +126,18 @@ def first_time():
     with open(path, "w") as text_file:
         text_file.write("")
    
-   
-   
- 
 consumer_conf = {
     'bootstrap.servers': 'localhost:9092',
     'group.id': 's3-consumer-group',
     'auto.offset.reset': 'earliest',
     'enable.auto.commit': False,
 }
- 
+
 consumer = Consumer(consumer_conf)
-first_time()
  
 topic = 'store-first-topic'
 consumer.subscribe([topic])
+first_time()
  
  
 try:
@@ -162,5 +160,4 @@ except KeyboardInterrupt:
     sys.stderr.write('%% Aborted by user\n')
 finally:
     consumer.close()
- 
  
