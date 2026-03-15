@@ -1,14 +1,21 @@
 from confluent_kafka import Consumer
-from config.kafka_config import consumer_config, topic
 import json
 
+consumer_config = {
+    "bootstrap.servers": "localhost:9092",
+    "group.id": "my-consumer-group1",
+    "auto.offset.reset": "earliest",
+    "enable.auto.commit": True,
+}
+
+topic = "filter-topic"
 
 consumer = Consumer(consumer_config)
 
 consumer.subscribe([topic])
 
 
-def check_message_schema(self, message: dict) -> bool:
+def check_message_schema(message: dict) -> bool:
     if message.get("market") and message.get("message"):
         # TODO: check this later
         if type(message["message"]) == str:
@@ -20,17 +27,22 @@ def check_message_schema(self, message: dict) -> bool:
 def read_from_kafka() -> dict:
     msg = consumer.poll(1.0)
     if msg is None:
-        raise TypeError
+        print("No message received")
+        return None
     if msg.error():
         print(msg.error())
         raise ValueError
     else:
         try:
-            dict_msg = json.loads(msg.value().decode("utf-8"))
-            if check_message_schema(msg):
-                return dict_msg
+            new_msg = json.loads(msg.value().decode('utf-8'))
+            if check_message_schema(new_msg):
+                consumer.commit(msg)
+                return new_msg
             else:
-                raise AttributeError
+                print("Message schema is incorrect")
+                consumer.commit(msg)
+                return None
         except json.JSONDecodeError:
+            print("Failed to decode message")
             consumer.commit(msg)
-    consumer.commit(msg)
+            return None

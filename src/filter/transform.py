@@ -3,14 +3,14 @@ import json
 
 
 class Transformer(ABC):
-    def get_original_message(message):
+    def get_original_message(self, message):
         message = message.get('message')
         if type(message.get('message')) == str:
             message = json.loads(message.get('message'))
         return message
 
 
-    def get_original_data(message):
+    def get_original_data(self, message):
         date = message.get("data")
         if type(date) == str:
             date = json.loads(date)

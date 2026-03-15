@@ -5,7 +5,18 @@ from cryptofeed import FeedHandler
 from cryptofeed.backends.quest import CandlesQuest, TradeQuest
 from cryptofeed.defines import CANDLES, TRADES
 from cryptofeed.exchanges import Binance, Bybit, Coinbase, Gemini
-from config.kafka_config import producer_config, topic
+
+
+producer_config = {
+    # User-specific properties that you must set
+    'bootstrap.servers': 'localhost:9092',
+
+    # Fixed properties
+    'acks': 'all'
+}
+
+filter_topic = "filter-topic"
+store_first_topic = "store-first-topic"
 
 producer = Producer(producer_config)
 
@@ -19,7 +30,8 @@ def delivery_report(err, msg):
 
 async def kafka_writer(t, receipt_timestamp):
     #print(t.raw)
-    producer.produce(topic, (json.dumps({"market": "BINANCE", "message": {"data": t.raw}})).encode('utf-8'), callback=delivery_report)
+    producer.produce(filter_topic, (json.dumps({"market": "BINANCE", "message": {"data": t.raw}})).encode('utf-8'), callback=delivery_report)
+    producer.produce(store_first_topic, (json.dumps({"market": "BINANCE", "message": {"data": t.raw}})).encode('utf-8'), callback=delivery_report)
     producer.flush()
 
 

@@ -7,20 +7,25 @@ from market_transform_redirect import market_transformer
 
 
 def run_pipeline():
-    while True:
-        try:
-            msg = read_from_kafka()
-            transformer = market_transformer[msg["market"].upper()]
-            transformed_msg = transformer(msg)
-            write_to_mq(transformed_msg)
-        except KeyboardInterrupt:
-            sys.stderr.write("%% Aborted by user\n")
-        except TypeError:
-            sys.stderr.write("%% None message encountered\n")
-        finally:
-            consumer.close()
-            connection.close()
-
+    try:
+        while True:
+            try:
+                message = read_from_kafka()
+                if message is not None:
+                    market = message.get("market")
+                    if market in market_transformer:
+                        transformed_message = market_transformer[market].transform(message)
+                        write_to_mq(transformed_message)
+                    else:
+                        print(f"Market {market} not supported for transformation.")
+            except Exception as e:
+                print(f"Error in pipeline: {e}")
+                continue
+    except KeyboardInterrupt:
+        print("Pipeline interrupted by user.")
+    finally:
+        consumer.close()
+        connection.close()
 
 def main():
     run_pipeline()

@@ -1,8 +1,6 @@
-from typing import Callable
-
 import transform
 
-market_transformer: dict[str, callable] = {}
+market_transformer: dict[str, transform.Transformer] = {}
 
-market_transformer['BINANCE'] = transform.BinanceTransformer.transform
-market_transformer['BYBIT'] = transform.BybitTransformer.transform
+market_transformer['BINANCE'] = transform.BinanceTransformer()
+market_transformer['BYBIT'] = transform.BybitTransformer()
