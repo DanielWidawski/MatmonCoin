@@ -9,7 +9,7 @@ from cryptofeed.exchanges import Binance, Bybit, Coinbase, Gemini
 
 producer_config = {
     # User-specific properties that you must set
-    'bootstrap.servers': 'localhost:9092',
+    'bootstrap.servers': 'kafka:9093',
 
     # Fixed properties
     'acks': 'all'
@@ -35,15 +35,10 @@ async def kafka_writer(t, receipt_timestamp):
     producer.flush()
 
 
-def main():
+def start_ingestion():
     config = {'log': {'filename': 'demo.log', 'level': 'DEBUG', 'disabled': False}}
     f = FeedHandler(config=config)
     binance_symbols = ['SOL-USDT', 'BTC-USDT', 'ETH-USDT', 'ARB-USDT', 'OP-USDT', 'PEPE-USDT', 'WIF-USDT', 'BNB-USDT']
     f.add_feed(Binance(channels=[TRADES], symbols=binance_symbols, callbacks={TRADES: kafka_writer}))
     # f.add_feed(Bybit(symbols=['BTC-USDT-PERP'], channels=[TRADES], callbacks={TRADES: kafka_writer}))
     f.run()
-
-
-# Run the client
-if __name__ == "__main__":
-    main()

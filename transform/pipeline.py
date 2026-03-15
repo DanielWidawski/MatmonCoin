@@ -1,9 +1,8 @@
-import sys
-from kafka_reader import read_from_kafka
-from mq_writer import write_to_mq
-from kafka_reader import consumer
-from mq_writer import connection
-from market_transform_redirect import market_transformer
+from src.kafka_reader import read_from_kafka
+from src.mq_writer import write_to_mq
+from src.kafka_reader import consumer
+from src.mq_writer import connection
+from src.market_transform_redirect import market_transformer
 
 
 def run_pipeline():

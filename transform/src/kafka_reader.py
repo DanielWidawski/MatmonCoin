@@ -2,7 +2,7 @@ from confluent_kafka import Consumer
 import json
 
 consumer_config = {
-    "bootstrap.servers": "localhost:9092",
+    "bootstrap.servers": "kafka:9093",
     "group.id": "my-consumer-group1",
     "auto.offset.reset": "earliest",
     "enable.auto.commit": True,
@@ -35,6 +35,7 @@ def read_from_kafka() -> dict:
     else:
         try:
             new_msg = json.loads(msg.value().decode('utf-8'))
+            print(new_msg)
             if check_message_schema(new_msg):
                 consumer.commit(msg)
                 return new_msg

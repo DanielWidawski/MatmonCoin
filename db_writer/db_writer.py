@@ -11,4 +11,4 @@ def write_to_questdb(mech, method, properties, body):
         sender.row("trades",
                    symbols={'symbol': msg.get('symbol'), 'market': msg.get('market').upper(), 'side': msg.get('side')},
                    columns={'price': float(msg.get('price')), 'amount': float(msg.get('amount'))},
-                   at= datetime.datetime.fromtimestamp(msg.get('timestamp')))
+                   at= datetime.fromtimestamp(msg.get('timestamp')))

@@ -3,11 +3,10 @@ import json
 import pika
 
 def set_mq_connection():
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq'))
     channel = connection.channel()
 
     channel.queue_declare(queue='ms')
-    return connection, channel
 
 connection, channel = set_mq_connection()
 
