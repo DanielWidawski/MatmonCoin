@@ -2,11 +2,15 @@ import json
 import sys
 from confluent_kafka import Consumer, KafkaException
 import boto3
-from botocore.client import Config
 import os
 from pathlib import Path
 import uuid
-from config_reader import config
+import config_reader
+import json
+ 
+ 
+with open('/home/config.json', 'r', encoding='utf-8') as file:
+        conf = json.load(file)
  
  
 def upload_to_s3(bucket_name, source_path,data):
@@ -23,14 +27,14 @@ def upload_to_s3(bucket_name, source_path,data):
     try:
         # Create an S3 client
         s3 = boto3.resource('s3',
-                             aws_access_key_id=config.get('General_S3', 'aws_access_key_id'),
-                               aws_secret_access_key=config.get('General_S3', 'aws_secret_access_key'))
+                             aws_access_key_id=conf.get('general_s3').get('aws_access_key_id'),
+                             aws_secret_access_key=conf.get('general_s3').get('aws_secret_access_key'))
         # Check if the source path is a file or a folder
         if os.path.isfile(source_path):
             # If it's a file, upload the file
             file_name = os.path.basename(source_path)
             with open(source_path, 'rb'):
-                s3.Bucket(bucket_name).put_object(Key='group6/'+file_name+str(uuid.uuid4()), Body=str(data))
+                s3.Bucket(bucket_name).put_object(Key='group4/'+file_name+str(uuid.uuid4()), Body=str(data))
             print(f'File {source_path} uploaded to S3 bucket {bucket_name}')
        
         elif os.path.isdir(source_path):
@@ -66,8 +70,8 @@ def delete_s3_object(bucket_name, object_name):
     """
     try:
         # Create an S3 resource
-        s3 = boto3.resource('s3', aws_access_key_id=config.get('General_S3', 'aws_access_key_id'),
-                             aws_secret_access_key=config.get('General_S3', 'aws_secret_access_key'))
+        s3 = boto3.resource('s3', aws_access_key_id=conf.get('general_s3', 'aws_access_key_id'),
+                             aws_secret_access_key=conf.get('general_s3', 'aws_secret_access_key'))
         # Get the bucket object
         bucket = s3.Bucket(bucket_name)
  
@@ -99,39 +103,42 @@ def delete_s3_object(bucket_name, object_name):
     # else:
     #     print("failed")'''
    
- 
- 
- 
- 
- 
 def write_to_s3(msg):
     print("**************************")
-    bucket_name = config.get('General_S3', 'bucket_name')
+ 
+    bucket_name = 'devops-training-504956989193'
     current_file_dir = Path(__file__).resolve().parent
     path = str(current_file_dir)+"\\try\\" + str(uuid.uuid4())+".txt"
     print(path)
+    try:
+        with open(path, "w") as text_file:
+            text_file.write(str(msg))
+        upload_to_s3(bucket_name=bucket_name,source_path=str(current_file_dir)+"try.txt",data=msg)
+    except:
+        print("didnt work")
+    finally:
+        os.remove(path)
+def first_time():
+    current_file_dir = Path(__file__).resolve().parent
+    path = str(current_file_dir)+"try.txt"
+    print(path)
     with open(path, "w") as text_file:
-        text_file.write(str(msg))
-    upload_to_s3(bucket_name=bucket_name,source_path=str(current_file_dir)+"try.txt",data=msg)
- 
-   
- 
-   
-   
+        text_file.write("")
    
    
    
  
-conf = {
+consumer_conf = {
     'bootstrap.servers': 'localhost:9092',
-    'group.id': 'my-consumer-group',
+    'group.id': 's3-consumer-group',
     'auto.offset.reset': 'earliest',
     'enable.auto.commit': False,
 }
  
-consumer = Consumer(conf)
+consumer = Consumer(consumer_conf)
+first_time()
  
-topic = 'my-topic'
+topic = 'store-first-topic'
 consumer.subscribe([topic])
  
  
@@ -155,4 +162,5 @@ except KeyboardInterrupt:
     sys.stderr.write('%% Aborted by user\n')
 finally:
     consumer.close()
+ 
  
