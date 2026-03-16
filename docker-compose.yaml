@@ -6,13 +6,15 @@ services:
       - "8812:8812"
       - "9009:9009"
       - "9003:9003"
+    networks:
+      - questdbnet
 
   grafana:
     image: grafana/grafana-enterprise:latest
     ports:
       - "3000:3000"
     environment:
-      - GF_DASHBOARDS_MIN_REFRESH_INTERVAL=250ms
+      - GF_DASHBOARDS_MIN_REFRESH_INTERVAL=1s
     volumes:
       - grafana-storage:/var/lib/grafana
     extra_hosts:
@@ -73,6 +75,7 @@ services:
       - questdb
     networks:
       - rabbitnet
+      - questdbnet
 
 volumes:
   grafana-storage:
@@ -80,3 +83,4 @@ volumes:
 networks:
   rabbitnet: {}
   kafkanet: {}
+  questdbnet: {}

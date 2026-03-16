@@ -7,6 +7,7 @@ def set_mq_connection():
     channel = connection.channel()
 
     channel.queue_declare(queue='ms')
+    return connection, channel
 
 connection, channel = set_mq_connection()
 

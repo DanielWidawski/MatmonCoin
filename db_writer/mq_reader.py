@@ -1,18 +1,28 @@
+import time
+
 import pika
 from pika.exceptions import StreamLostError
 
 from db_writer import write_to_questdb
 
+
 def set_mq_connection():
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq'))
-    channel = connection.channel()
+    while True:
+        try:
+            connection = pika.BlockingConnection(
+                pika.ConnectionParameters(host="rabbitmq")
+            )
+            channel = connection.channel()
+            return connection, channel
+        except pika.exceptions.AMQPConnectionError:
+            print("Waiting for RabbitMQ...")
+            time.sleep(5)
 
-    channel.queue_declare(queue='ms')
-    return connection, channel
 
-connection, channel = set_mq_connection()
+base_connection, base_channel = set_mq_connection()
 
-def read_from_mq():
+
+def read_from_mq(connection=base_connection, channel=base_channel):
     channel.basic_consume(
         queue="ms", on_message_callback=write_to_questdb, auto_ack=True
     )
@@ -21,4 +31,5 @@ def read_from_mq():
         channel.start_consuming()
     except StreamLostError:
         print("Stream lost, reconnecting...")
-        read_from_mq()
+        new_connection, new_channel = set_mq_connection()
+        read_from_mq(new_connection, new_channel)
