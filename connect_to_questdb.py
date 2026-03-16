@@ -9,7 +9,8 @@ def create_trades_table():
     price DOUBLE,
     amount DOUBLE,
     timestamp TIMESTAMP
-) timestamp(timestamp) PARTITION BY DAY TTL 2 WEEKS;"""  )
+) timestamp(timestamp) PARTITION BY DAY TTL 2 WEEKS
+  DEDUP UPSERT KEYS(symbol, timestamp, price);"""  )
 
 
 def create_trades_materilized_view(materilized_view_name: str, sample_by: str , TTL_time: str, refresh_rate: str, partition_by: str ) -> None:
@@ -25,29 +26,30 @@ def create_trades_materilized_view(materilized_view_name: str, sample_by: str , 
  
 conn_str = 'user=admin password=quest host=0.0.0.0 port=8812 dbname=trades'    
  
-sampled_by_minute_materilized_view_name: str = 'binance_trades_1m'
+sampled_by_minute_materilized_view_name: str = 'trades_sampled_by_1m'
 sampled_by_minute: str = '1m'
  
-sampled_by_hour_materilized_view_name: str = 'binance_trades_1h'
+sampled_by_hour_materilized_view_name: str = 'trades_sampled_by_1h'
 sampled_by_hour: str = '1h'
  
-sampled_by_day_materilized_view_name: str = 'binance_trades_1d'
+sampled_by_day_materilized_view_name: str = 'trades_sampled_by_1d'
 sampled_by_day: str = '1d'
  
+with pg.connect(conn_str, autocommit=True) as connection:
+     
+     with connection.cursor() as cur:
+         create_trades_table() 
  
  
 with pg.connect(conn_str, autocommit=True) as connection:
      
      with connection.cursor() as cur:
-       #create_trades_table()
        create_trades_materilized_view(materilized_view_name=sampled_by_minute_materilized_view_name, sample_by=sampled_by_minute, TTL_time="TTL 40 DAYS",refresh_rate = "1m", partition_by = "DAY")
-       create_trades_materilized_view(materilized_view_name=sampled_by_hour_materilized_view_name, sample_by=sampled_by_hour, TTL_time="TTL 7 MONTH", refresh_rate = "10m", partition_by = "MONTH")
-       create_trades_materilized_view(materilized_view_name=sampled_by_day_materilized_view_name,sample_by=sampled_by_day, TTL_time="", refresh_rate = "1h", partition_by = "YEAR")
+       create_trades_materilized_view(materilized_view_name=sampled_by_hour_materilized_view_name, sample_by=sampled_by_hour, TTL_time="TTL 7 MONTH", refresh_rate = "1h", partition_by = "MONTH")
+       create_trades_materilized_view(materilized_view_name=sampled_by_day_materilized_view_name,sample_by=sampled_by_day, TTL_time="", refresh_rate = "1d", partition_by = "YEAR")
      
        cur.execute(f"""SELECT * FROM {sampled_by_minute_materilized_view_name}  
                     """)
        records = cur.fetchall()
        for row in records:
          print(row)    
-                 
-       
