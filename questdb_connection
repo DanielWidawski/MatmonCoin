@@ -15,7 +15,7 @@ def create_trades_table():
 
 def create_trades_materilized_view(materilized_view_name: str, sample_by: str , TTL_time: str, refresh_rate: str, partition_by: str ) -> None:
    cur.execute(f""" CREATE MATERIALIZED VIEW {materilized_view_name} REFRESH EVERY {refresh_rate} AS (
-                    SELECT symbol, timestamp, avg(price) AS avg_price, min(price) AS min_price, max(price) AS max_price
+                    SELECT symbol, market, timestamp, avg(price) AS avg_price, min(price) AS min_price, max(price) AS max_price
                     FROM trades
                     SAMPLE BY {sample_by}
                ) PARTITION BY {partition_by} {TTL_time}
@@ -40,7 +40,7 @@ with pg.connect(conn_str, autocommit=True) as connection:
      
      with connection.cursor() as cur:
          #create_trades_table()
-         pass 
+         pass
   
 with pg.connect(conn_str, autocommit=True) as connection:
      
