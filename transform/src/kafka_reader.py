@@ -35,7 +35,6 @@ def read_from_kafka() -> dict:
     else:
         try:
             new_msg = json.loads(msg.value().decode('utf-8'))
-            print(new_msg)
             if check_message_schema(new_msg):
                 consumer.commit(msg)
                 return new_msg

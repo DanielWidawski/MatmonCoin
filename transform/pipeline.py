@@ -11,7 +11,7 @@ def run_pipeline():
             try:
                 message = read_from_kafka()
                 if message is not None:
-                    market = message.get("market")
+                    market = message.get("market").upper()
                     if market in market_transformer:
                         transformed_message = market_transformer[market].transform(message)
                         write_to_mq(transformed_message)
